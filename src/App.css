@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap");
+
+body {
+  font-family: "Syne", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+/* For WebKit (Chrome, Safari, newer versions of Opera) */
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
