@@ -19,7 +19,6 @@ function App() {
     const year = now.getFullYear();
     const hours = now.getHours();
     const minutes = now.getMinutes().toString().padStart(2, "0"); // Ensuring minutes are always two digits
-    const seconds = now.getSeconds().toString().padStart(2, "0"); // Ensuring seconds are always two digits
 
     // Determine if it's AM or PM
     const ampm = hours >= 12 ? "PM" : "AM";
@@ -28,7 +27,7 @@ function App() {
     let formattedHours = hours % 12 || 12; // Handle midnight (0 hours)
 
     // Construct the time string
-    const currentTime = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+    const currentTime = `${formattedHours}:${minutes} ${ampm}`;
 
     return { currentTime, year };
   }
@@ -87,6 +86,13 @@ function App() {
   const handleSearch = () => {
     setLoading(true);
     getWeatherDetails(inputCity);
+  };
+
+  // Event handler for input key press
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch(); // Call handleSearch function when Enter key is pressed
+    }
   };
 
   // mph to kmp
@@ -153,6 +159,7 @@ function App() {
             placeholder="Search city..."
             value={inputCity}
             onChange={handleChangeInput}
+            onKeyPress={handleKeyPress}
           />
           <button onClick={handleSearch}>
             <FaMagnifyingGlass />
@@ -165,11 +172,19 @@ function App() {
         <Spinner />
       ) : (
         <div className="p-4 mb-16 h-[80vh] overflow-auto flex flex-col gap-5">
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <div className="border flex justify-center items-center px-4 rounded-md h-40 bg-slate-50 w-full">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+            <div className="border flex justify-center flex-col items-center px-4 rounded-md h-40 bg-slate-50 w-full">
               <h1 className="text-2xl font-semibold">
                 {data?.name},{data?.sys?.country}
               </h1>
+              <div className="flex gap-2">
+                <p className="text-base font-medium">
+                  Latitude: {data?.coord.lat}
+                </p>
+                <p className="text-base font-medium">
+                  Longitude: {data?.coord.lon}
+                </p>
+              </div>
             </div>
             <div className="border flex flex-col justify-center items-center px-4 gap-1 rounded-md h-40 bg-slate-50 w-full">
               <h1 className="text-2xl font-semibold">Weather </h1>
@@ -182,10 +197,50 @@ function App() {
                   : "N/A"}
               </p>
             </div>
+            <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
+              <h1 className="text-2xl font-semibold">
+                {data && data.timezone !== undefined
+                  ? `UTC ${data.timezone / 3600}, ${
+                      data.sys && data.sys.country
+                    }`
+                  : "N/A"}
+              </h1>
+              <p className="text-base font-medium">Timezone</p>
+            </div>
           </div>
 
           <div className="w-full">
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
+                <h1 className="text-2xl font-semibold">
+                  {data && data.sys && data.sys.sunrise !== undefined
+                    ? new Date(data.sys.sunrise * 1000).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        }
+                      )
+                    : "N/A"}
+                </h1>
+                <p className="text-base font-medium">Sunrise</p>
+              </div>
+              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
+                <h1 className="text-2xl font-semibold">
+                  {data && data.sys && data.sys.sunset !== undefined
+                    ? new Date(data.sys.sunset * 1000).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        }
+                      )
+                    : "N/A"}
+                </h1>
+                <p className="text-base font-medium">Sunset</p>
+              </div>
               <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
                 <h1 className="text-2xl font-semibold">
                   {(data?.main?.temp_max - 273.15).toFixed(2)}°C
@@ -219,6 +274,14 @@ function App() {
                     : "N/A"}
                 </h1>
                 <p className="text-base font-medium">Humidity</p>
+              </div>
+              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
+                <h1 className="text-2xl font-semibold">
+                  {data && data.visibility !== undefined
+                    ? (data.visibility / 1000).toFixed(2) + " km"
+                    : "N/A"}
+                </h1>
+                <p className="text-base font-medium">Visibility</p>
               </div>
             </div>
           </div>
