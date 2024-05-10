@@ -293,7 +293,7 @@ function App() {
         <p className="">
           {currentYear} {currentTime}
         </p>
-        <a href="https://prabhat-singh.vercel.app" target="_/blank">
+        <a href="https://prabhat-singh-portfolio.vercel.app/" target="_/blank">
           © Prabhat Singh
         </a>
       </div>
