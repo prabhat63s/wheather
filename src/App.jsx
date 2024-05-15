@@ -4,49 +4,35 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 import axios from "axios";
 
 // Spinner component
-function Spinner() {
-  return (
-    <div className="spinner-container">
-      <div className="spinner"></div>
-    </div>
-  );
-}
+const Spinner = () => (
+  <div className="spinner-container">
+    <div className="spinner"></div>
+  </div>
+);
 
-function App() {
+const App = () => {
   // Function to get current time
-  function getCurrentTime() {
+  const getCurrentTime = () => {
     const now = new Date();
     const year = now.getFullYear();
     const hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, "0"); // Ensuring minutes are always two digits
-
-    // Determine if it's AM or PM
+    const minutes = now.getMinutes().toString().padStart(2, "0");
     const ampm = hours >= 12 ? "PM" : "AM";
-
-    // Convert hours to 12-hour format
-    let formattedHours = hours % 12 || 12; // Handle midnight (0 hours)
-
-    // Construct the time string
+    const formattedHours = hours % 12 || 12;
     const currentTime = `${formattedHours}:${minutes} ${ampm}`;
-
     return { currentTime, year };
-  }
+  };
 
-  // Get current time and year
   const { currentTime, year: currentYear } = getCurrentTime();
-
-  // State variables
   const [inputCity, setInputCity] = useState("");
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Function to fetch current location
     const fetchCurrentLocation = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          // Fetch weather data for current location
           getWeatherDetailsByCoordinates(latitude, longitude);
         },
         (error) => {
@@ -55,16 +41,12 @@ function App() {
         }
       );
     };
-
-    // Fetch current location data initially
     fetchCurrentLocation();
   }, []);
 
-  // Function to fetch weather details by coordinates
   const getWeatherDetailsByCoordinates = (latitude, longitude) => {
-    const apiKey = "d68d124bfe565bf5078788ede377b708"; // API key for OpenWeatherMap
+    const apiKey = "d68d124bfe565bf5078788ede377b708";
     const apiURL = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`;
-
     axios
       .get(apiURL)
       .then((res) => {
@@ -77,82 +59,40 @@ function App() {
       });
   };
 
-  // Event handler for input change
-  const handleChangeInput = (e) => {
-    setInputCity(e.target.value);
-  };
+  const handleChangeInput = (e) => setInputCity(e.target.value);
 
-  // Function handler for search button click
   const handleSearch = () => {
     setLoading(true);
     getWeatherDetails(inputCity);
   };
 
-  // Event handler for input key press
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch(); // Call handleSearch function when Enter key is pressed
-    }
+    if (e.key === "Enter") handleSearch();
   };
 
-  // mph to kmp
-  const mphToKmh = (mph) => mph * 1.60934;
+  const mphToKmh = (mph) => (mph * 1.60934).toFixed(2) + " km/h";
 
-  // day time
-  // Get the current date and time
-  const currentDate = new Date();
-
-  // Set the time to 7:00 PM
-  currentDate.setHours(19, 0, 0, 0); // Hours are in 24-hour format, so 19 is 7:00 PM
-
-  // Get the day of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday)
-  const dayOfWeek = currentDate.getDay();
-
-  // Convert dayOfWeek to a string representation of the day
-  const daysOfWeek = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const currentDay = daysOfWeek[dayOfWeek];
-
-  // Function to fetch weather details for a given city
   const getWeatherDetails = (cityName) => {
-    if (!cityName) return; // Return early if the cityName is empty
-
-    // Construct the API URL for fetching weather data.
-    const apiKey = "d68d124bfe565bf5078788ede377b708"; // API key for OpenWeatherMap
-    const apiURL =
-      "https://api.openweathermap.org/data/2.5/weather?q=" +
-      cityName +
-      "&appid=" +
-      apiKey;
-
-    // Make a GET request to the OpenWeatherMap API
+    if (!cityName) return;
+    const apiKey = "d68d124bfe565bf5078788ede377b708";
+    const apiURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
     axios
       .get(apiURL)
-      .then((res) => {
-        console.log("response", res.data);
-        setData(res.data); // Update the state with the response data.
-      })
-      .catch((err) => {
-        console.log("err", err);
-      })
-      .finally(() => {
-        setLoading(false); // Set loading to false when the request is completed (whether successful or not)
-      });
+      .then((res) => setData(res.data))
+      .catch((err) => console.log("err", err))
+      .finally(() => setLoading(false));
   };
+
+  const currentDate = new Date();
+  currentDate.setHours(19, 0, 0, 0);
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const currentDay = daysOfWeek[currentDate.getDay()];
 
   return (
     <div className="text-neutral-950">
-      {/* header  */}
       <div className="h-[10vh] border-b px-4 items-center flex justify-between">
-        <h1 className=" text-2xl font-semibold">Weather </h1>
-        <div className="lg:w-60 bg-slate-50 py-1.5 px-2 rounded-md border flex items-center ">
+        <h1 className="text-2xl font-semibold">Weather</h1>
+        <div className="lg:w-60 bg-slate-50 py-1.5 px-2 rounded-md border flex items-center">
           <input
             type="text"
             className="w-full bg-transparent outline-none"
@@ -167,7 +107,6 @@ function App() {
         </div>
       </div>
 
-      {/* details */}
       {loading ? (
         <Spinner />
       ) : (
@@ -178,31 +117,23 @@ function App() {
                 {data?.name},{data?.sys?.country}
               </h1>
               <div className="flex gap-2">
-                <p className="text-base font-medium">
-                  Latitude: {data?.coord.lat}
-                </p>
-                <p className="text-base font-medium">
-                  Longitude: {data?.coord.lon}
-                </p>
+                <p className="text-base font-medium">Latitude: {data?.coord.lat}</p>
+                <p className="text-base font-medium">Longitude: {data?.coord.lon}</p>
               </div>
             </div>
             <div className="border flex flex-col justify-center items-center px-4 gap-1 rounded-md h-40 bg-slate-50 w-full">
-              <h1 className="text-2xl font-semibold">Weather </h1>
+              <h1 className="text-2xl font-semibold">Weather</h1>
               <p className="text-base font-medium">
                 {currentDay}, {currentTime}
               </p>
               <p className="text-base font-medium">
-                {data && data.weather && data.weather[0] && data.weather[0].main
-                  ? data.weather[0].main
-                  : "N/A"}
+                {data?.weather?.[0]?.main || "N/A"}
               </p>
             </div>
             <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
               <h1 className="text-2xl font-semibold">
-                {data && data.timezone !== undefined
-                  ? `UTC ${data.timezone / 3600}, ${
-                      data.sys && data.sys.country
-                    }`
+                {data?.timezone !== undefined
+                  ? `UTC ${data.timezone / 3600}, ${data.sys?.country}`
                   : "N/A"}
               </h1>
               <p className="text-base font-medium">Timezone</p>
@@ -211,94 +142,56 @@ function App() {
 
           <div className="w-full">
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {data && data.sys && data.sys.sunrise !== undefined
-                    ? new Date(data.sys.sunrise * 1000).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        }
-                      )
-                    : "N/A"}
-                </h1>
-                <p className="text-base font-medium">Sunrise</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {data && data.sys && data.sys.sunset !== undefined
-                    ? new Date(data.sys.sunset * 1000).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                        }
-                      )
-                    : "N/A"}
-                </h1>
-                <p className="text-base font-medium">Sunset</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {(data?.main?.temp_max - 273.15).toFixed(2)}°C
-                </h1>
-                <p className="text-base font-medium">High tomorrow</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {(data?.main?.temp - 273.15).toFixed(2)}°C
-                </h1>
-                <p className="text-base font-medium">Temperature</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {(data?.main?.feels_like - 273.15).toFixed(2)}°C
-                </h1>
-                <p className="text-base font-medium">Will feel like</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {data && data.wind && data.wind.speed !== undefined
-                    ? mphToKmh(data.wind.speed).toFixed(2) + " km/h"
-                    : "N/A"}
-                </h1>
-                <p className="text-base font-medium">Wind speed</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {data && data.main && data.main.humidity !== undefined
-                    ? data.main.humidity.toFixed(2) + "%"
-                    : "N/A"}
-                </h1>
-                <p className="text-base font-medium">Humidity</p>
-              </div>
-              <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
-                <h1 className="text-2xl font-semibold">
-                  {data && data.visibility !== undefined
-                    ? (data.visibility / 1000).toFixed(2) + " km"
-                    : "N/A"}
-                </h1>
-                <p className="text-base font-medium">Visibility</p>
-              </div>
+              <WeatherDetail
+                label="Sunrise"
+                value={
+                  data?.sys?.sunrise
+                    ? new Date(data.sys.sunrise * 1000).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })
+                    : "N/A"
+                }
+              />
+              <WeatherDetail
+                label="Sunset"
+                value={
+                  data?.sys?.sunset
+                    ? new Date(data.sys.sunset * 1000).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      })
+                    : "N/A"
+                }
+              />
+              <WeatherDetail label="High tomorrow" value={`${(data?.main?.temp_max - 273.15).toFixed(2)}°C`} />
+              <WeatherDetail label="Temperature" value={`${(data?.main?.temp - 273.15).toFixed(2)}°C`} />
+              <WeatherDetail label="Will feel like" value={`${(data?.main?.feels_like - 273.15).toFixed(2)}°C`} />
+              <WeatherDetail label="Wind speed" value={data?.wind?.speed !== undefined ? mphToKmh(data.wind.speed) : "N/A"} />
+              <WeatherDetail label="Humidity" value={`${data?.main?.humidity || "N/A"}%`} />
+              <WeatherDetail label="Visibility" value={data?.visibility !== undefined ? `${(data.visibility / 1000).toFixed(2)} km` : "N/A"} />
             </div>
           </div>
         </div>
       )}
 
-      {/* footer */}
       <div className="h-[10vh] fixed bottom-0 w-full p-4 border-t items-center flex justify-between">
-        <p className="">
-          {currentYear} {currentTime}
-        </p>
+        <p>{currentYear} {currentTime}</p>
         <a href="https://prabhat-singh-portfolio.vercel.app/" target="_/blank">
           © Prabhat Singh
         </a>
       </div>
     </div>
   );
-}
+};
+
+const WeatherDetail = ({ label, value }) => (
+  <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
+    <h1 className="text-2xl font-semibold">{value}</h1>
+    <p className="text-base font-medium">{label}</p>
+  </div>
+);
 
 export default App;
