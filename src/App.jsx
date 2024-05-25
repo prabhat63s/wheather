@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import "./App.css";
 import { FaMagnifyingGlass } from "react-icons/fa6";
@@ -9,6 +10,27 @@ const Spinner = () => (
     <div className="spinner"></div>
   </div>
 );
+
+// Speech Synthesis Function with Debugging
+const speak = (text) => {
+  if (!("speechSynthesis" in window)) {
+    console.error("Your browser does not support speech synthesis.");
+    return;
+  }
+
+  if (!text) {
+    console.error("No text provided for speech synthesis.");
+    return;
+  }
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "en-US";
+
+  speech.onend = () => console.log("Speech synthesis finished.");
+  speech.onerror = (e) => console.error("Speech synthesis error:", e);
+
+  window.speechSynthesis.speak(speech);
+};
 
 const App = () => {
   // Function to get current time
@@ -52,6 +74,7 @@ const App = () => {
       .then((res) => {
         setData(res.data);
         setLoading(false);
+        readWeatherInfo(res.data);
       })
       .catch((err) => {
         console.error("Error fetching weather data:", err);
@@ -72,21 +95,88 @@ const App = () => {
 
   const mphToKmh = (mph) => (mph * 1.60934).toFixed(2) + " km/h";
 
+  const readWeatherInfo = (data) => {
+    const { name, sys, weather, main, wind, visibility } = data;
+    const weatherDescription = weather[0]?.main || "N/A";
+    const temperature = (main?.temp - 273.15).toFixed(2) + "°C";
+    const feelsLike = (main?.feels_like - 273.15).toFixed(2) + "°C";
+    const windSpeed = mphToKmh(wind?.speed);
+    const humidity = main?.humidity + "%";
+    const visibilityKm = visibility
+      ? (visibility / 1000).toFixed(2) + " km"
+      : "N/A";
+    const timezone =
+      data.timezone !== undefined
+        ? `UTC ${data.timezone / 3600}, ${sys?.country}`
+        : "N/A";
+    const sunrise = new Date(sys.sunrise * 1000).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const sunset = new Date(sys.sunset * 1000).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    const text = `
+      Weather information for ${name}, ${sys?.country}. 
+      Current weather is ${weatherDescription}. 
+      Temperature is ${temperature}. 
+      Feels like ${feelsLike}. 
+      Wind speed is ${windSpeed}. 
+      Humidity is ${humidity}. 
+      Visibility is ${visibilityKm}. 
+      Sunrise at ${sunrise}. 
+      Sunset at ${sunset}. 
+      Timezone is ${timezone}.
+    `;
+    speak(text);
+  };
+
   const getWeatherDetails = (cityName) => {
     if (!cityName) return;
     const apiKey = "d68d124bfe565bf5078788ede377b708";
     const apiURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${apiKey}`;
     axios
       .get(apiURL)
-      .then((res) => setData(res.data))
+      .then((res) => {
+        setData(res.data);
+        readWeatherInfo(res.data);
+      })
       .catch((err) => console.log("err", err))
       .finally(() => setLoading(false));
   };
 
   const currentDate = new Date();
   currentDate.setHours(19, 0, 0, 0);
-  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
   const currentDay = daysOfWeek[currentDate.getDay()];
+
+  useEffect(() => {
+    const handleDivClick = () => {
+      readWeatherInfo(data);
+    };
+  
+    const weatherDetailsDiv = document.getElementById("weather-details");
+    if (weatherDetailsDiv) {
+      weatherDetailsDiv.addEventListener("click", handleDivClick);
+  
+      return () => {
+        weatherDetailsDiv.removeEventListener("click", handleDivClick);
+      };
+    }
+  }, [data]);
+  
 
   return (
     <div className="text-neutral-950">
@@ -110,15 +200,22 @@ const App = () => {
       {loading ? (
         <Spinner />
       ) : (
-        <div className="p-4 mb-16 h-[80vh] overflow-auto flex flex-col gap-5">
+        <div
+          id="weather-details"
+          className="p-4 mb-16 h-[80vh] overflow-auto flex flex-col gap-5"
+        >
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
             <div className="border flex justify-center flex-col items-center px-4 rounded-md h-40 bg-slate-50 w-full">
               <h1 className="text-2xl font-semibold">
                 {data?.name},{data?.sys?.country}
               </h1>
               <div className="flex gap-2">
-                <p className="text-base font-medium">Latitude: {data?.coord.lat}</p>
-                <p className="text-base font-medium">Longitude: {data?.coord.lon}</p>
+                <p className="text-base font-medium">
+                  Latitude: {data?.coord.lat}
+                </p>
+                <p className="text-base font-medium">
+                  Longitude: {data?.coord.lon}
+                </p>
               </div>
             </div>
             <div className="border flex flex-col justify-center items-center px-4 gap-1 rounded-md h-40 bg-slate-50 w-full">
@@ -146,11 +243,14 @@ const App = () => {
                 label="Sunrise"
                 value={
                   data?.sys?.sunrise
-                    ? new Date(data.sys.sunrise * 1000).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                      })
+                    ? new Date(data.sys.sunrise * 1000).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        }
+                      )
                     : "N/A"
                 }
               />
@@ -158,27 +258,58 @@ const App = () => {
                 label="Sunset"
                 value={
                   data?.sys?.sunset
-                    ? new Date(data.sys.sunset * 1000).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                      })
+                    ? new Date(data.sys.sunset * 1000).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        }
+                      )
                     : "N/A"
                 }
               />
-              <WeatherDetail label="High tomorrow" value={`${(data?.main?.temp_max - 273.15).toFixed(2)}°C`} />
-              <WeatherDetail label="Temperature" value={`${(data?.main?.temp - 273.15).toFixed(2)}°C`} />
-              <WeatherDetail label="Will feel like" value={`${(data?.main?.feels_like - 273.15).toFixed(2)}°C`} />
-              <WeatherDetail label="Wind speed" value={data?.wind?.speed !== undefined ? mphToKmh(data.wind.speed) : "N/A"} />
-              <WeatherDetail label="Humidity" value={`${data?.main?.humidity || "N/A"}%`} />
-              <WeatherDetail label="Visibility" value={data?.visibility !== undefined ? `${(data.visibility / 1000).toFixed(2)} km` : "N/A"} />
+              <WeatherDetail
+                label="High tomorrow"
+                value={`${(data?.main?.temp_max - 273.15).toFixed(2)}°C`}
+              />
+              <WeatherDetail
+                label="Temperature"
+                value={`${(data?.main?.temp - 273.15).toFixed(2)}°C`}
+              />
+              <WeatherDetail
+                label="Will feel like"
+                value={`${(data?.main?.feels_like - 273.15).toFixed(2)}°C`}
+              />
+              <WeatherDetail
+                label="Wind speed"
+                value={
+                  data?.wind?.speed !== undefined
+                    ? mphToKmh(data.wind.speed)
+                    : "N/A"
+                }
+              />
+              <WeatherDetail
+                label="Humidity"
+                value={`${data?.main?.humidity || "N/A"}%`}
+              />
+              <WeatherDetail
+                label="Visibility"
+                value={
+                  data?.visibility !== undefined
+                    ? `${(data.visibility / 1000).toFixed(2)} km`
+                    : "N/A"
+                }
+              />
             </div>
           </div>
         </div>
       )}
 
       <div className="h-[10vh] fixed bottom-0 w-full p-4 border-t items-center flex justify-between">
-        <p>{currentYear} {currentTime}</p>
+        <p>
+          {currentYear} {currentTime}
+        </p>
         <a href="https://prabhat-singh-portfolio.vercel.app/" target="_/blank">
           © Prabhat Singh
         </a>
