@@ -105,10 +105,6 @@ const App = () => {
     const visibilityKm = visibility
       ? (visibility / 1000).toFixed(2) + " km"
       : "N/A";
-    const timezone =
-      data.timezone !== undefined
-        ? `UTC ${data.timezone / 3600}, ${sys?.country}`
-        : "N/A";
     const sunrise = new Date(sys.sunrise * 1000).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -121,7 +117,9 @@ const App = () => {
     });
 
     const text = `
-      Weather information for ${name}, ${sys?.country}. 
+      Weather information for ${name}, ${
+      sys?.country == "IN" ? "India" : sys?.country
+    }. 
       Current weather is ${weatherDescription}. 
       Temperature is ${temperature}. 
       Feels like ${feelsLike}. 
@@ -130,7 +128,6 @@ const App = () => {
       Visibility is ${visibilityKm}. 
       Sunrise at ${sunrise}. 
       Sunset at ${sunset}. 
-      Timezone is ${timezone}.
     `;
     speak(text);
   };
@@ -166,17 +163,16 @@ const App = () => {
     const handleDivClick = () => {
       readWeatherInfo(data);
     };
-  
+
     const weatherDetailsDiv = document.getElementById("weather-details");
     if (weatherDetailsDiv) {
       weatherDetailsDiv.addEventListener("click", handleDivClick);
-  
+
       return () => {
         weatherDetailsDiv.removeEventListener("click", handleDivClick);
       };
     }
   }, [data]);
-  
 
   return (
     <div className="text-neutral-950">
@@ -207,7 +203,8 @@ const App = () => {
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
             <div className="border flex justify-center flex-col items-center px-4 rounded-md h-40 bg-slate-50 w-full">
               <h1 className="text-2xl font-semibold">
-                {data?.name},{data?.sys?.country}
+                {data?.name},
+                {data?.sys?.country == "IN" ? "India" : data?.sys?.country}
               </h1>
               <div className="flex gap-2">
                 <p className="text-base font-medium">
@@ -230,7 +227,9 @@ const App = () => {
             <div className="flex items-center justify-center flex-col gap-2 border rounded-md h-40 w-full bg-slate-50">
               <h1 className="text-2xl font-semibold">
                 {data?.timezone !== undefined
-                  ? `UTC ${data.timezone / 3600}, ${data.sys?.country}`
+                  ? `UTC ${data.timezone / 3600}, ${
+                      data?.sys?.country == "IN" ? "India" : data?.sys?.country
+                    }`
                   : "N/A"}
               </h1>
               <p className="text-base font-medium">Timezone</p>
