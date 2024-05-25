@@ -180,7 +180,7 @@ const App = () => {
 
   return (
     <div className="text-neutral-950">
-      <div className="h-[10vh] border-b px-4 items-center flex justify-between">
+      <div className="h-[10vh] border-b px-4 items-center flex justify-between bg-white">
         <h1 className="text-2xl font-semibold">Weather</h1>
         <div className="lg:w-60 bg-slate-50 py-1.5 px-2 rounded-md border flex items-center">
           <input
@@ -306,7 +306,7 @@ const App = () => {
         </div>
       )}
 
-      <div className="h-[10vh] fixed bottom-0 w-full p-4 border-t items-center flex justify-between">
+      <div className="h-[10vh] fixed bottom-0 w-full p-4 border-t items-center flex justify-between bg-white">
         <p>
           {currentYear} {currentTime}
         </p>
